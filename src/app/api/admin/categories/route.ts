@@ -1,14 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase-utils'
-import { Database } from '@/types/database'
+import { createClient } from '@supabase/supabase-js'
 
-type Category = Database['public']['Tables']['categories']['Row']
-type CategoryInsert = Database['public']['Tables']['categories']['Insert']
-type CategoryUpdate = Database['public']['Tables']['categories']['Update']
+// Créer directement le client avec les types appropriés
+function createSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    throw new Error('Variables d\'environnement Supabase manquantes pour le serveur')
+  }
+
+  return createClient(supabaseUrl, supabaseServiceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  })
+}
+
+interface Category {
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  image_url: string | null
+  parent_id: string | null
+  sort_order: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+interface CategoryInsert {
+  name: string
+  slug: string
+  description?: string | null
+  image_url?: string | null
+  parent_id?: string | null
+  sort_order?: number
+  is_active?: boolean
+}
+
+interface CategoryUpdate {
+  id?: string
+  name?: string
+  slug?: string
+  description?: string | null
+  image_url?: string | null
+  parent_id?: string | null
+  sort_order?: number
+  is_active?: boolean
+}
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerClient()
+    const supabase = createSupabaseClient()
 
     // Récupérer les catégories avec tri par ordre
     const { data: categories, error } = await supabase
@@ -30,7 +76,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createServerClient()
+    const supabase = createSupabaseClient()
 
     const body = await request.json()
     const { name, slug, description, image_url, parent_id, sort_order, is_active } = body
@@ -80,17 +126,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Erreur lors de la création de la catégorie' }, { status: 500 })
     }
 
-    // Enregistrer l'activité
-    await supabase
-      .from('activity_logs')
-      .insert({
-        user_id: user.id,
-        action: 'create',
-        entity_type: 'category',
-        entity_id: category.id,
-        details: { category_name: category.name }
-      })
-
     return NextResponse.json({ category }, { status: 201 })
   } catch (error) {
     console.error('Erreur API categories POST:', error)
@@ -100,7 +135,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = createServerClient()
+    const supabase = createSupabaseClient()
 
     const body = await request.json()
     const { id, name, slug, description, image_url, parent_id, sort_order, is_active } = body
@@ -121,7 +156,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Vérifier l'unicité du slug (sauf pour cette catégorie)
-    if (slug && slug !== existingCategory.slug) {
+    if (slug && slug !== (existingCategory as Category).slug) {
       const { data: duplicateSlug } = await supabase
         .from('categories')
         .select('id')
@@ -134,7 +169,7 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    const updateData: CategoryUpdate = {}
+    const updateData: Partial<CategoryUpdate> = {}
     if (name !== undefined) updateData.name = name
     if (slug !== undefined) updateData.slug = slug
     if (description !== undefined) updateData.description = description || null
@@ -155,17 +190,6 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Erreur lors de la mise à jour de la catégorie' }, { status: 500 })
     }
 
-    // Enregistrer l'activité
-    await supabase
-      .from('activity_logs')
-      .insert({
-        user_id: user.id,
-        action: 'update',
-        entity_type: 'category',
-        entity_id: category.id,
-        details: { category_name: category.name, changes: updateData }
-      })
-
     return NextResponse.json({ category })
   } catch (error) {
     console.error('Erreur API categories PUT:', error)
@@ -175,7 +199,7 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = createServerClient()
+    const supabase = createSupabaseClient()
 
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
@@ -228,17 +252,6 @@ export async function DELETE(request: NextRequest) {
       console.error('Erreur lors de la suppression de la catégorie:', error)
       return NextResponse.json({ error: 'Erreur lors de la suppression de la catégorie' }, { status: 500 })
     }
-
-    // Enregistrer l'activité
-    await supabase
-      .from('activity_logs')
-      .insert({
-        user_id: user.id,
-        action: 'delete',
-        entity_type: 'category',
-        entity_id: id,
-        details: { category_name: existingCategory.name }
-      })
 
     return NextResponse.json({ message: 'Catégorie supprimée avec succès' })
   } catch (error) {

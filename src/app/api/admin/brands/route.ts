@@ -1,14 +1,57 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase-utils'
-import { Database } from '@/types/database'
+import { createClient } from '@supabase/supabase-js'
 
-type Brand = Database['public']['Tables']['brands']['Row']
-type BrandInsert = Database['public']['Tables']['brands']['Insert']
-type BrandUpdate = Database['public']['Tables']['brands']['Update']
+// Créer directement le client avec les types appropriés
+function createSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    throw new Error('Variables d\'environnement Supabase manquantes pour le serveur')
+  }
+
+  return createClient(supabaseUrl, supabaseServiceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  })
+}
+
+interface Brand {
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  logo_url: string | null
+  website_url: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+interface BrandInsert {
+  name: string
+  slug: string
+  description?: string | null
+  logo_url?: string | null
+  website_url?: string | null
+  is_active?: boolean
+}
+
+interface BrandUpdate {
+  id?: string
+  name?: string
+  slug?: string
+  description?: string | null
+  logo_url?: string | null
+  website_url?: string | null
+  is_active?: boolean
+}
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerClient()
+    const supabase = createSupabaseClient()
 
     // Récupérer les marques avec tri par nom
     const { data: brands, error } = await supabase
@@ -36,7 +79,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createServerClient()
+    const supabase = createSupabaseClient()
     const body = await request.json()
 
     console.log('📝 Création de marque:', body)
@@ -106,7 +149,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = createServerClient()
+    const supabase = createSupabaseClient()
     const body = await request.json()
 
     const { id, name, slug, description, logo_url, website_url, is_active } = body
@@ -127,7 +170,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Vérifier l'unicité du slug (sauf pour cette marque)
-    if (slug && slug !== existingBrand.slug) {
+    if (slug && slug !== (existingBrand as Brand).slug) {
       const { data: duplicateSlug } = await supabase
         .from('brands')
         .select('id')
@@ -140,7 +183,7 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    const updateData: BrandUpdate = {}
+    const updateData: Partial<BrandUpdate> = {}
     if (name !== undefined) updateData.name = name
     if (slug !== undefined) updateData.slug = slug
     if (description !== undefined) updateData.description = description || null
@@ -175,7 +218,7 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = createServerClient()
+    const supabase = createSupabaseClient()
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
 
