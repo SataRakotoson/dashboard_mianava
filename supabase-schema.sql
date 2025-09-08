@@ -201,3 +201,27 @@ BEGIN
   RETURN log_id;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Fonction pour créer automatiquement un profil utilisateur
+CREATE OR REPLACE FUNCTION handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.users (id, email, full_name, role)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email),
+    CASE 
+      WHEN NEW.email = 'admin@mianava.com' THEN 'admin'
+      ELSE 'user'
+    END
+  );
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger pour créer automatiquement un profil lors de l'inscription
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION handle_new_user();
