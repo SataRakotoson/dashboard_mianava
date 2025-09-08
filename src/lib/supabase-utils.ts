@@ -1,8 +1,11 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { Database } from '@/types/database'
 
+// Type pour le client serveur
+export type ServerClient = SupabaseClient<Database>
+
 // Fonction utilitaire pour créer un client Supabase côté serveur
-export function createServerClient() {
+export function createServerClient(): ServerClient {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
@@ -18,8 +21,11 @@ export function createServerClient() {
   })
 }
 
+// Type pour le client côté client
+export type ClientClient = SupabaseClient<Database>
+
 // Fonction utilitaire pour créer un client Supabase côté client
-export function createClientClient() {
+export function createClientClient(): ClientClient {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 

@@ -27,16 +27,21 @@ export async function getPublicProducts() {
 
 // ✅ BON : Utiliser le client serveur dans les API routes
 export async function createUserServerSide(userData: any) {
-  // Cette fonction ne doit être appelée que côté serveur
-  const serverClient = createServerClient()
-  
-  const { data, error } = await serverClient
-    .from('users')
-    .insert([userData])
-    .select()
-    .single()
+  try {
+    // Cette fonction ne doit être appelée que côté serveur
+    const serverClient = createServerClient()
     
-  return { data, error }
+    const { data, error } = await (serverClient as any)
+      .from('users')
+      .insert(userData)
+      .select()
+      .single()
+      
+    if (error) throw error
+    return { success: true, data }
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Une erreur est survenue' }
+  }
 }
 
 // ✅ BON : Utiliser le client serveur pour les opérations administratives
@@ -66,6 +71,6 @@ export async function handleApiRequest() {
     
     return { success: true, data }
   } catch (error) {
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Une erreur est survenue' }
   }
 }

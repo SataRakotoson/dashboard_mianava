@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase-utils'
+import { ProductInsert } from '@/types/supabase-types'
 
 export async function GET(request: NextRequest) {
   try {
@@ -30,12 +31,12 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    const body: ProductInsert = await request.json()
     const serverClient = createServerClient()
     
-    const { data, error } = await serverClient
+    const { data, error } = await (serverClient as any)
       .from('products')
-      .insert([body])
+      .insert(body)
       .select()
       .single()
 

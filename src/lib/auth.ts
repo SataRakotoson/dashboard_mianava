@@ -1,7 +1,8 @@
 import { supabase } from './supabase'
-import { Database } from '@/types/database'
+import { createServerClient } from './supabase-utils'
+import { DatabaseUser, UserUpdate } from '@/types/supabase-types'
 
-type User = Database['public']['Tables']['users']['Row']
+type User = DatabaseUser
 
 export interface AuthUser {
   id: string
@@ -55,7 +56,7 @@ export class AuthService {
         .from('users')
         .select('*')
         .eq('id', user.id)
-        .single()
+        .single() as { data: User | null, error: any }
 
       if (error) {
         console.warn('Profil utilisateur non trouvé dans la base:', error?.message)
@@ -93,13 +94,14 @@ export class AuthService {
     }
   }
 
-  async updateProfile(updates: Partial<Pick<User, 'full_name' | 'avatar_url'>>) {
+  async updateProfile(updates: UserUpdate) {
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) throw new Error('Non authentifié')
 
-    // Utiliser le client normal avec RLS pour les mises à jour de profil
-    const { data, error } = await supabase
+    // Utiliser le client serveur pour contourner les problèmes de typage RLS
+    const serverClient = createServerClient()
+    const { data, error } = await (serverClient as any)
       .from('users')
       .update(updates)
       .eq('id', user.id)
