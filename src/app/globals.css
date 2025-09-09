@@ -46,3 +46,8 @@ body {
     @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6;
   }
 }
+
+textarea {
+  color: black !important;
+  font-size: small;
+}

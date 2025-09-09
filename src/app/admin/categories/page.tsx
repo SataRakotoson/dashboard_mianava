@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
+import { Autocomplete } from '@/components/ui/Autocomplete'
 import {
   PlusIcon,
   PencilIcon,
@@ -414,25 +415,21 @@ export default function CategoriesPage() {
               value={formData.image_url}
               onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
             />
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Catégorie parent
-              </label>
-              <select
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                value={formData.parent_id}
-                onChange={(e) => setFormData(prev => ({ ...prev, parent_id: e.target.value }))}
-              >
-                <option value="">Aucun parent</option>
-                {parentCategories
+            <Autocomplete
+              label="Catégorie parent"
+              placeholder="Rechercher une catégorie parent ou laisser vide..."
+              options={[
+                { id: '', name: 'Aucun parent (catégorie racine)' },
+                ...parentCategories
                   .filter(cat => !isEditMode || cat.id !== editingCategory?.id)
-                  .map(cat => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+                  .map(cat => ({
+                    id: cat.id,
+                    name: cat.name
+                  }))
+              ]}
+              value={formData.parent_id}
+              onChange={(value) => setFormData(prev => ({ ...prev, parent_id: value }))}
+            />
             <Input
               label="Ordre de tri"
               type="number"

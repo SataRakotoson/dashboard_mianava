@@ -8,6 +8,7 @@ import { Modal } from '@/components/ui/Modal'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { ImageUpload } from '@/components/ui/ImageUpload'
 import { Autocomplete } from '@/components/ui/Autocomplete'
+import { Checkbox } from '@/components/ui/Checkbox'
 import { useProducts, useCategories, useBrands, createCategory, createBrand } from '@/lib/api-hooks'
 import {
   PlusIcon,
@@ -31,6 +32,10 @@ interface Product {
   images: string[]
   inventory_quantity: number
   is_active: boolean
+  extra_details: string | null
+  is_flash_sale: boolean
+  is_new: boolean
+  is_match_li: boolean
   categories?: { name: string }
   brands?: { name: string }
 }
@@ -46,6 +51,10 @@ interface ProductFormData {
   inventory_quantity: number
   weight: number
   images: string[]
+  extra_details: string
+  is_flash_sale: boolean
+  is_new: boolean
+  is_match_li: boolean
 }
 
 export default function ProductsPage() {
@@ -62,7 +71,11 @@ export default function ProductsPage() {
     brand_id: '',
     inventory_quantity: 0,
     weight: 0,
-    images: []
+    images: [],
+    extra_details: '',
+    is_flash_sale: false,
+    is_new: false,
+    is_match_li: false
   })
 
   const products = useProducts()
@@ -77,7 +90,7 @@ export default function ProductsPage() {
 
   const getStatusColor = (product: Product) => {
     if (!product.is_active) {
-      return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 text-gray-800'
     }
     if (product.inventory_quantity === 0) {
       return 'bg-red-100 text-red-800'
@@ -134,7 +147,11 @@ export default function ProductsPage() {
       brand_id: product.brand_id || '',
       inventory_quantity: product.inventory_quantity,
       weight: 0,
-      images: product.images || []
+      images: product.images || [],
+      extra_details: product.extra_details || '',
+      is_flash_sale: product.is_flash_sale || false,
+      is_new: product.is_new || false,
+      is_match_li: product.is_match_li || false
     })
     setIsModalOpen(true)
   }
@@ -156,7 +173,11 @@ export default function ProductsPage() {
       brand_id: '',
       inventory_quantity: 0,
       weight: 0,
-      images: []
+      images: [],
+      extra_details: '',
+      is_flash_sale: false,
+      is_new: false,
+      is_match_li: false
     })
   }
 
@@ -250,7 +271,7 @@ export default function ProductsPage() {
                     SKU
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Catégorie
+                    Détails
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Prix
@@ -274,11 +295,11 @@ export default function ProductsPage() {
                         <div className="relative h-12 w-12 rounded-lg bg-gray-200 flex items-center justify-center overflow-hidden">
                           {product.images && product.images.length > 0 ? (
                             <>
-                              <img
-                                className="h-12 w-12 rounded-lg object-cover"
+                        <img
+                          className="h-12 w-12 rounded-lg object-cover"
                                 src={product.images[0]}
-                                alt={product.name}
-                              />
+                          alt={product.name}
+                        />
                               {product.images.length > 1 && (
                                 <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                                   {product.images.length}
@@ -292,14 +313,43 @@ export default function ProductsPage() {
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">{product.name}</div>
                           <div className="text-sm text-gray-500">{product.brands?.name || 'Aucune marque'}</div>
+                          <div className="flex gap-1 mt-1">
+                            {product.is_new && (
+                              <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                Nouveau
+                              </span>
+                            )}
+                            {product.is_flash_sale && (
+                              <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                Flash
+                              </span>
+                            )}
+                            {product.is_match_li && (
+                              <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                                Match Li
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {product.sku}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {product.categories?.name || 'Non classé'}
+                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
+                      <div className="space-y-1">
+                        <div className="text-xs text-gray-600">
+                          {product.categories?.name || 'Non classé'}
+                        </div>
+                        {product.extra_details && (
+                          <div className="text-xs text-gray-500 truncate" title={product.extra_details}>
+                            {product.extra_details.length > 50 
+                              ? `${product.extra_details.substring(0, 50)}...` 
+                              : product.extra_details
+                            }
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       €{product.price}
@@ -381,6 +431,20 @@ export default function ProductsPage() {
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
               />
             </div>
+
+            
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Détails supplémentaires (mode d'emploi, tips, etc ...)
+            </label>
+            <textarea
+              rows={4}
+              className="text-black block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              placeholder="Informations complémentaires sur le produit..."
+              value={formData.extra_details}
+              onChange={(e) => setFormData({...formData, extra_details: e.target.value})}
+            />
+          </div>
             <Autocomplete
               label="Catégorie"
               placeholder="Rechercher ou créer une catégorie..."
@@ -434,6 +498,32 @@ export default function ProductsPage() {
               maxImages={5}
               folder="products"
             />
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Options du produit
+            </label>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Checkbox
+                label="Vente Flash"
+                checked={formData.is_flash_sale}
+                onChange={(checked) => setFormData({...formData, is_flash_sale: checked})}
+                description="Produit en promotion temporaire"
+              />
+              <Checkbox
+                label="Nouveau Produit"
+                checked={formData.is_new}
+                onChange={(checked) => setFormData({...formData, is_new: checked})}
+                description="Marquer comme nouveau"
+              />
+              <Checkbox
+                label="Match Li"
+                checked={formData.is_match_li}
+                onChange={(checked) => setFormData({...formData, is_match_li: checked})}
+                description="Produit en match li"
+              />
+            </div>
           </div>
           
           {products.state.error && (

@@ -30,6 +30,10 @@ export interface DatabaseProduct {
   allow_backorder: boolean
   is_digital: boolean
   is_active: boolean
+  extra_details: string | null
+  is_flash_sale: boolean
+  is_new: boolean
+  is_match_li: boolean
   seo_title: string | null
   seo_description: string | null
   created_at: string
