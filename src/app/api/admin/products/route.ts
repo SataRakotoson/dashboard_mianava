@@ -53,3 +53,62 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+export async function PUT(request: NextRequest) {
+  try {
+    const { id, ...updateData } = await request.json()
+    const serverClient = createServerClient()
+    
+    const { data, error } = await (serverClient as any)
+      .from('products')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) {
+      throw error
+    }
+
+    return NextResponse.json({ product: data })
+  } catch (error: any) {
+    console.error('Erreur lors de la mise à jour du produit:', error)
+    return NextResponse.json(
+      { error: 'Erreur interne du serveur' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+    
+    if (!id) {
+      return NextResponse.json(
+        { error: 'ID du produit requis' },
+        { status: 400 }
+      )
+    }
+
+    const serverClient = createServerClient()
+    
+    const { error } = await (serverClient as any)
+      .from('products')
+      .delete()
+      .eq('id', id)
+
+    if (error) {
+      throw error
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error: any) {
+    console.error('Erreur lors de la suppression du produit:', error)
+    return NextResponse.json(
+      { error: 'Erreur interne du serveur' },
+      { status: 500 }
+    )
+  }
+}

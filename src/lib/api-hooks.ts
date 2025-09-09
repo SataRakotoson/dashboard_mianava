@@ -117,3 +117,8 @@ export function useCategories() {
 export function useBrands() {
   return useApiCrud('/api/admin/brands')
 }
+
+// Hook spécialisé pour les produits
+export function useProducts() {
+  return useApiCrud('/api/admin/products')
+}
