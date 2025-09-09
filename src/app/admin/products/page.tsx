@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { ImageUpload } from '@/components/ui/ImageUpload'
 import { useProducts, useCategories, useBrands } from '@/lib/api-hooks'
 import {
   PlusIcon,
@@ -13,6 +14,7 @@ import {
   TrashIcon,
   MagnifyingGlassIcon,
   AdjustmentsHorizontalIcon,
+  PhotoIcon,
 } from '@heroicons/react/24/outline'
 
 interface Product {
@@ -42,6 +44,7 @@ interface ProductFormData {
   brand_id: string
   inventory_quantity: number
   weight: number
+  images: string[]
 }
 
 export default function ProductsPage() {
@@ -57,7 +60,8 @@ export default function ProductsPage() {
     category_id: '',
     brand_id: '',
     inventory_quantity: 0,
-    weight: 0
+    weight: 0,
+    images: []
   })
 
   const products = useProducts()
@@ -96,7 +100,6 @@ export default function ProductsPage() {
     const productData = {
       ...formData,
       slug: formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-      images: [],
       tags: [],
       track_inventory: true,
       allow_backorder: false,
@@ -129,7 +132,8 @@ export default function ProductsPage() {
       category_id: product.category_id,
       brand_id: product.brand_id || '',
       inventory_quantity: product.inventory_quantity,
-      weight: 0
+      weight: 0,
+      images: product.images || []
     })
     setIsModalOpen(true)
   }
@@ -150,7 +154,8 @@ export default function ProductsPage() {
       category_id: '',
       brand_id: '',
       inventory_quantity: 0,
-      weight: 0
+      weight: 0,
+      images: []
     })
   }
 
@@ -245,15 +250,22 @@ export default function ProductsPage() {
                   <tr key={product.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="h-12 w-12 rounded-lg bg-gray-200 flex items-center justify-center">
-                          {product.images?.[0] ? (
-                            <img
-                              className="h-12 w-12 rounded-lg object-cover"
-                              src={product.images[0]}
-                              alt={product.name}
-                            />
+                        <div className="relative h-12 w-12 rounded-lg bg-gray-200 flex items-center justify-center overflow-hidden">
+                          {product.images && product.images.length > 0 ? (
+                            <>
+                              <img
+                                className="h-12 w-12 rounded-lg object-cover"
+                                src={product.images[0]}
+                                alt={product.name}
+                              />
+                              {product.images.length > 1 && (
+                                <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                                  {product.images.length}
+                                </div>
+                              )}
+                            </>
                           ) : (
-                            <span className="text-gray-400 text-xs">Pas d'image</span>
+                            <PhotoIcon className="h-6 w-6 text-gray-400" />
                           )}
                         </div>
                         <div className="ml-4">
@@ -398,6 +410,18 @@ export default function ProductsPage() {
               placeholder="0.0" 
               value={formData.weight}
               onChange={(e) => setFormData({...formData, weight: parseFloat(e.target.value) || 0})}
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Images du produit
+            </label>
+            <ImageUpload
+              images={formData.images}
+              onImagesChange={(images) => setFormData({...formData, images})}
+              maxImages={5}
+              folder="products"
             />
           </div>
           
