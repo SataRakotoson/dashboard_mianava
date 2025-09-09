@@ -139,7 +139,7 @@ export default function ProductVariants({ productId, productName }: ProductVaria
 
   const renderAttributeField = (attributeKey: string) => {
     const options = ATTRIBUTE_OPTIONS[attributeKey as keyof typeof ATTRIBUTE_OPTIONS]
-    const value = formData.attributes[attributeKey] || ''
+    const value = String(formData.attributes[attributeKey] || '')
 
     if (Array.isArray(options)) {
       if (typeof options[0] === 'string') {
@@ -155,7 +155,7 @@ export default function ProductVariants({ productId, productName }: ProductVaria
               className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
             >
               <option value="">Sélectionner...</option>
-              {options.map((option) => (
+              {(options as string[]).map((option) => (
                 <option key={option} value={option}>{option}</option>
               ))}
             </select>
@@ -183,7 +183,7 @@ export default function ProductVariants({ productId, productName }: ProductVaria
               className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
             >
               <option value="">Sélectionner...</option>
-              {options.map((option: any) => (
+              {(options as { value: string; label: string }[]).map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
               ))}
             </select>
@@ -237,7 +237,7 @@ export default function ProductVariants({ productId, productName }: ProductVaria
     return entries.map(([key, value]) => {
       const option = ATTRIBUTE_OPTIONS[key as keyof typeof ATTRIBUTE_OPTIONS]
       if (Array.isArray(option) && typeof option[0] === 'object') {
-        const found = option.find((opt: any) => opt.value === value)
+        const found = (option as { value: string; label: string }[]).find((opt) => opt.value === value)
         return `${key.replace('_', ' ')}: ${found?.label || value}`
       }
       return `${key.replace('_', ' ')}: ${value}`
@@ -286,7 +286,7 @@ export default function ProductVariants({ productId, productName }: ProductVaria
             </div>
           ) : (
             <div className="space-y-3">
-              {variantList.map((variant: ProductVariant) => (
+              {(variantList as ProductVariant[]).map((variant) => (
                 <div key={variant.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
                   <div className="flex items-center space-x-4">
                     <div className="flex-shrink-0">
@@ -415,7 +415,7 @@ export default function ProductVariants({ productId, productName }: ProductVaria
               <div className="space-y-3">
                 {/* Attributs du template sélectionné */}
                 {selectedTemplate !== 'custom' && 
-                  VARIANT_TEMPLATES[selectedTemplate].attributes.map(renderAttributeField)
+                  VARIANT_TEMPLATES[selectedTemplate].attributes.map((attr) => renderAttributeField(String(attr)))
                 }
                 
                 {/* Attributs personnalisés existants */}
