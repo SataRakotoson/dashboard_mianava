@@ -122,3 +122,60 @@ export function useBrands() {
 export function useProducts() {
   return useApiCrud('/api/admin/products')
 }
+
+// Fonction utilitaire pour créer une nouvelle catégorie
+export async function createCategory(name: string) {
+  try {
+    const response = await fetch('/api/admin/categories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name,
+        slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        description: null,
+        image_url: null,
+        parent_id: null,
+        sort_order: 0,
+        is_active: true
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error('Erreur lors de la création de la catégorie')
+    }
+
+    const result = await response.json()
+    return result.category || result
+  } catch (error) {
+    console.error('Erreur création catégorie:', error)
+    return null
+  }
+}
+
+// Fonction utilitaire pour créer une nouvelle marque
+export async function createBrand(name: string) {
+  try {
+    const response = await fetch('/api/admin/brands', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name,
+        slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        description: null,
+        logo_url: null,
+        website_url: null,
+        is_active: true
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error('Erreur lors de la création de la marque')
+    }
+
+    const result = await response.json()
+    return result.brand || result
+  } catch (error) {
+    console.error('Erreur création marque:', error)
+    return null
+  }
+}

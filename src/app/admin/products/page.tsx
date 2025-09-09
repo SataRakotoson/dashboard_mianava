@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { ImageUpload } from '@/components/ui/ImageUpload'
-import { useProducts, useCategories, useBrands } from '@/lib/api-hooks'
+import { Autocomplete } from '@/components/ui/Autocomplete'
+import { useProducts, useCategories, useBrands, createCategory, createBrand } from '@/lib/api-hooks'
 import {
   PlusIcon,
   PencilIcon,
@@ -163,6 +164,26 @@ export default function ProductsPage() {
     setIsModalOpen(false)
     setEditingProduct(null)
     resetForm()
+  }
+
+  const handleCreateCategory = async (name: string) => {
+    const newCategory = await createCategory(name)
+    if (newCategory) {
+      // Recharger la liste des catégories
+      await categories.reload()
+      return { id: newCategory.id, name: newCategory.name }
+    }
+    return null
+  }
+
+  const handleCreateBrand = async (name: string) => {
+    const newBrand = await createBrand(name)
+    if (newBrand) {
+      // Recharger la liste des marques
+      await brands.reload()
+      return { id: newBrand.id, name: newBrand.name }
+    }
+    return null
   }
 
   const filteredProducts = (products.state.data as Product[] || []).filter((product: Product) =>
@@ -354,47 +375,37 @@ export default function ProductsPage() {
               </label>
               <textarea
                 rows={4}
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                className="text-black block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                 placeholder="Description du produit..."
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Catégorie
-              </label>
-              <select
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                value={formData.category_id}
-                onChange={(e) => setFormData({...formData, category_id: e.target.value})}
-                required
-              >
-                <option value="">Sélectionner une catégorie</option>
-                {(categories.state.data || []).map((category: any) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Marque
-              </label>
-              <select
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                value={formData.brand_id}
-                onChange={(e) => setFormData({...formData, brand_id: e.target.value})}
-              >
-                <option value="">Sélectionner une marque</option>
-                {(brands.state.data || []).map((brand: any) => (
-                  <option key={brand.id} value={brand.id}>
-                    {brand.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <Autocomplete
+              label="Catégorie"
+              placeholder="Rechercher ou créer une catégorie..."
+              options={(categories.state.data || []).map((category: any) => ({
+                id: category.id,
+                name: category.name
+              }))}
+              value={formData.category_id}
+              onChange={(value) => setFormData({...formData, category_id: value})}
+              onCreateNew={handleCreateCategory}
+              required
+              createNewLabel="Créer la catégorie"
+            />
+            <Autocomplete
+              label="Marque"
+              placeholder="Rechercher ou créer une marque..."
+              options={(brands.state.data || []).map((brand: any) => ({
+                id: brand.id,
+                name: brand.name
+              }))}
+              value={formData.brand_id}
+              onChange={(value) => setFormData({...formData, brand_id: value})}
+              onCreateNew={handleCreateBrand}
+              createNewLabel="Créer la marque"
+            />
             <Input 
               label="Quantité en stock" 
               type="number" 
