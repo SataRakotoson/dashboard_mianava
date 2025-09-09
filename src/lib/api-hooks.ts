@@ -123,6 +123,57 @@ export function useProducts() {
   return useApiCrud('/api/admin/products')
 }
 
+// Hook spécialisé pour les variants d'un produit
+export function useProductVariants(productId: string) {
+  const endpoint = `/api/admin/products/${productId}/variants`
+  const variants = useApiCrud(endpoint)
+  
+  // Override des méthodes pour utiliser les bonnes routes
+  const updateVariant = useCallback(async (variantId: string, data: any): Promise<boolean> => {
+    try {
+      const response = await fetch(`/api/admin/variants/${variantId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      
+      if (!response.ok) {
+        throw new Error('Erreur lors de la mise à jour du variant')
+      }
+      
+      await variants.reload()
+      return true
+    } catch (error) {
+      console.error('Erreur update variant:', error)
+      return false
+    }
+  }, [variants])
+
+  const removeVariant = useCallback(async (variantId: string): Promise<boolean> => {
+    try {
+      const response = await fetch(`/api/admin/variants/${variantId}`, {
+        method: 'DELETE',
+      })
+      
+      if (!response.ok) {
+        throw new Error('Erreur lors de la suppression du variant')
+      }
+      
+      await variants.reload()
+      return true
+    } catch (error) {
+      console.error('Erreur remove variant:', error)
+      return false
+    }
+  }, [variants])
+
+  return {
+    ...variants,
+    update: updateVariant,
+    remove: removeVariant,
+  }
+}
+
 // Fonction utilitaire pour créer une nouvelle catégorie
 export async function createCategory(name: string) {
   try {

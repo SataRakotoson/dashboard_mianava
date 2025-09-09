@@ -10,6 +10,7 @@ import { ImageUpload } from '@/components/ui/ImageUpload'
 import { Autocomplete } from '@/components/ui/Autocomplete'
 import { Checkbox } from '@/components/ui/Checkbox'
 import { useProducts, useCategories, useBrands, createCategory, createBrand } from '@/lib/api-hooks'
+import ProductVariants from '@/components/ProductVariants'
 import {
   PlusIcon,
   PencilIcon,
@@ -17,6 +18,7 @@ import {
   MagnifyingGlassIcon,
   AdjustmentsHorizontalIcon,
   PhotoIcon,
+  CubeIcon,
 } from '@heroicons/react/24/outline'
 
 interface Product {
@@ -61,6 +63,7 @@ export default function ProductsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
+  const [showingVariants, setShowingVariants] = useState<Product | null>(null)
   const [formData, setFormData] = useState<ProductFormData>({
     name: '',
     sku: '',
@@ -364,6 +367,9 @@ export default function ProductsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-2">
+                        <Button variant="ghost" size="sm" onClick={() => setShowingVariants(product)} title="Gérer les variants">
+                          <CubeIcon className="h-4 w-4" />
+                        </Button>
                         <Button variant="ghost" size="sm" onClick={() => handleEdit(product)}>
                           <PencilIcon className="h-4 w-4" />
                         </Button>
@@ -541,6 +547,21 @@ export default function ProductsPage() {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Modal pour gérer les variants */}
+      <Modal
+        isOpen={!!showingVariants}
+        onClose={() => setShowingVariants(null)}
+        title="Gestion des variants"
+        maxWidth="2xl"
+      >
+        {showingVariants && (
+          <ProductVariants
+            productId={showingVariants.id}
+            productName={showingVariants.name}
+          />
+        )}
       </Modal>
     </div>
   )
