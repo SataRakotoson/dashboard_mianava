@@ -173,7 +173,7 @@ export default function AidePage() {
             <div className="space-y-4">
               <h4 className="font-semibold text-gray-900 border-b pb-2">Spécifications techniques</h4>
               
-              <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="bg-gray-50 p-4 rounded-lg text-black">
                 <ul className="space-y-2 text-sm">
                   <li><strong>Formats acceptés :</strong> JPG, PNG, WEBP</li>
                   <li><strong>Taille maximale :</strong> 5 MB par image</li>

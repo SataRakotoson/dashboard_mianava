@@ -51,3 +51,8 @@ textarea {
   color: black !important;
   font-size: small;
 }
+
+select {
+  color: black !important;
+  padding: 10px;
+}

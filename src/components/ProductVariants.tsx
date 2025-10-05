@@ -422,7 +422,7 @@ export default function ProductVariants({ productId, productName }: ProductVaria
               <select
                 value={selectedTemplate}
                 onChange={(e) => handleTemplateChange(e.target.value)}
-                className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                className="w-full p-2 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-black"
               >
                 {Object.entries(VARIANT_TEMPLATES).map(([key, template]) => (
                   <option key={key} value={key}>
