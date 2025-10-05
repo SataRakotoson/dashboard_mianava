@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { ImageUpload } from '@/components/ui/ImageUpload'
 import { useProductVariants } from '@/lib/api-hooks'
 import {
   PlusIcon,
@@ -37,6 +38,7 @@ export default function ProductVariants({ productId, productName }: ProductVaria
     image_url: '',
     is_active: true
   })
+  const [variantImages, setVariantImages] = useState<string[]>([])
 
   const variants = useProductVariants(productId)
 
@@ -47,14 +49,18 @@ export default function ProductVariants({ productId, productName }: ProductVaria
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    // Utiliser la première image du tableau ou une chaîne vide
+    const variantData = {
+      ...formData,
+      image_url: variantImages.length > 0 ? variantImages[0] : '',
+      product_id: productId
+    }
+    
     let success = false
     if (editingVariant) {
-      success = await variants.update(editingVariant.id, formData)
+      success = await variants.update(editingVariant.id, variantData)
     } else {
-      success = await variants.create({
-        ...formData,
-        product_id: productId
-      })
+      success = await variants.create(variantData)
     }
 
     if (success) {
@@ -75,6 +81,8 @@ export default function ProductVariants({ productId, productName }: ProductVaria
       image_url: variant.image_url || '',
       is_active: variant.is_active
     })
+    // Charger l'image existante dans le tableau
+    setVariantImages(variant.image_url ? [variant.image_url] : [])
     setIsModalOpen(true)
   }
 
@@ -96,6 +104,7 @@ export default function ProductVariants({ productId, productName }: ProductVaria
       image_url: '',
       is_active: true
     })
+    setVariantImages([])
     setSelectedTemplate('custom')
   }
 
@@ -290,7 +299,19 @@ export default function ProductVariants({ productId, productName }: ProductVaria
                 <div key={variant.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
                   <div className="flex items-center space-x-4">
                     <div className="flex-shrink-0">
-                      {getVariantIcon(variant.attributes)}
+                      {variant.image_url ? (
+                        <div className="relative h-12 w-12 rounded-lg bg-gray-200 flex items-center justify-center overflow-hidden">
+                          <img
+                            className="h-12 w-12 rounded-lg object-cover"
+                            src={variant.image_url}
+                            alt={variant.name}
+                          />
+                        </div>
+                      ) : (
+                        <div className="h-12 w-12 rounded-lg bg-gray-200 flex items-center justify-center">
+                          {getVariantIcon(variant.attributes)}
+                        </div>
+                      )}
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center space-x-2">
@@ -382,11 +403,14 @@ export default function ProductVariants({ productId, productName }: ProductVaria
           </div>
 
           <div className="md:col-span-2">
-            <Input
-              label="URL de l'image"
-              placeholder="https://example.com/image.jpg"
-              value={formData.image_url}
-              onChange={(e) => setFormData({...formData, image_url: e.target.value})}
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Image du variant
+            </label>
+            <ImageUpload
+              images={variantImages}
+              onImagesChange={setVariantImages}
+              maxImages={1}
+              folder="variants"
             />
           </div>
 

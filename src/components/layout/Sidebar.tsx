@@ -13,7 +13,8 @@ import {
   CubeIcon,
   GiftIcon,
   TruckIcon,
-  BuildingStorefrontIcon
+  BuildingStorefrontIcon,
+  QuestionMarkCircleIcon
 } from '@heroicons/react/24/outline'
 
 const navigation = [
@@ -21,10 +22,11 @@ const navigation = [
   { name: 'Produits', href: '/admin/products', icon: CubeIcon },
   { name: 'Catégories', href: '/admin/categories', icon: TagIcon },
   { name: 'Marques', href: '/admin/brands', icon: BuildingStorefrontIcon },
-  { name: 'Inventaire', href: '/admin/inventory', icon: ShoppingBagIcon },
-  { name: 'Utilisateurs', href: '/admin/users', icon: UserGroupIcon },
-  { name: 'Analytics', href: '/admin/analytics', icon: ChartBarIcon },
-  { name: 'Paramètres', href: '/admin/settings', icon: CogIcon },
+  // { name: 'Inventaire', href: '/admin/inventory', icon: ShoppingBagIcon },
+  // { name: 'Utilisateurs', href: '/admin/users', icon: UserGroupIcon },
+  // { name: 'Analytics', href: '/admin/analytics', icon: ChartBarIcon },
+  { name: 'Aide', href: '/admin/aide', icon: QuestionMarkCircleIcon },
+  // { name: 'Paramètres', href: '/admin/settings', icon: CogIcon },
 ]
 
 export function Sidebar() {
