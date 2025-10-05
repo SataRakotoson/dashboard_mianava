@@ -658,7 +658,8 @@ export default function AidePage() {
         {/* Contenu */}
         <div className="lg:col-span-3 space-y-6">
           {helpSections.map((section) => (
-            <Card key={section.id} id={section.id} className={openSections.includes(section.id) ? '' : 'hidden'}>
+            <div key={section.id} id={section.id} className={openSections.includes(section.id) ? '' : 'hidden'}>
+              <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
@@ -683,7 +684,8 @@ export default function AidePage() {
               <CardContent>
                 {section.content}
               </CardContent>
-            </Card>
+              </Card>
+            </div>
           ))}
         </div>
       </div>
